@@ -168,14 +168,14 @@ def main():
     ax.annotate(
         f"10 min: {share_10:.1f}%",
         xy=(10, share_10),
-        xytext=(14, min(share_10 + 11, 92)),
-        arrowprops={"arrowstyle": "->"},
+        xytext=(11.5, share_10 + 6),
+        textcoords="data",
     )
     ax.annotate(
         f"15 min: {share_15:.1f}%",
         xy=(15, share_15),
-        xytext=(22, min(share_15 + 13, 94)),
-        arrowprops={"arrowstyle": "->"},
+        xytext=(16.5, share_15 + 8),
+        textcoords="data",
     )
 
     ax.set_xlim(0, x_upper)
