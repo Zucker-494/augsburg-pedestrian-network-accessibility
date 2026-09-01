@@ -21,6 +21,7 @@
 - detour ratio implemented
 - walking-time accessibility implemented
 - static figures implemented
+- walking-accessibility Figure 3 revised to an ECDF with explicit 10/15-minute graph-node shares
 - interactive OSM map implemented
 - GeoPackage GIS working outputs implemented
 - GitHub Actions cloud workflow implemented

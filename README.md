@@ -193,6 +193,17 @@ These are available in the GitHub Actions artifact but are not committed to the
 repository because they can be substantially larger than the portfolio figures
 and tables.
 
+
+### Figure 3 interpretation
+
+`figure03_walking_accessibility.png` is a cumulative accessibility curve.
+
+Its y-axis is the **share of analysed pedestrian-network nodes**, not population,
+urban area, households or pedestrian-network length. The 10-minute and
+15-minute percentages therefore describe the analysed graph-node distribution
+relative to the **sampled supermarkets** only.
+
+
 ---
 
 ## Reproducibility

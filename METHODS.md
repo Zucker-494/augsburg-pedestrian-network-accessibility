@@ -75,3 +75,14 @@ weights. The baseline routing cost remains physical distance.
 
 The model describes pedestrian-network accessibility under the mapped OSM
 network. It is not an observed pedestrian travel-time or behavioural model.
+
+
+## 10. Cumulative walking-accessibility figure
+
+The walking-accessibility figure uses an empirical cumulative distribution
+function (ECDF). For each walking-time threshold, the y-axis reports the share
+of **analysed graph nodes** whose network distance to one of the sampled
+supermarkets falls within that threshold.
+
+This is a graph-node statistic. It is not interpreted as population coverage,
+area coverage, household coverage or network-length coverage.

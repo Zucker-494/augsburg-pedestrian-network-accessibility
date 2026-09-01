@@ -132,25 +132,64 @@ def main():
     plt.close(fig)
 
     # ---------------------------------------------------------------
-    # Figure 3: walking-time distribution
+    # Figure 3: cumulative walking accessibility (ECDF)
     # ---------------------------------------------------------------
-    fig, ax = plt.subplots(figsize=(7.5, 5.5))
-    ax.hist(
-        nodes["walking_time_min"].dropna(),
-        bins=35,
+    walking = nodes["walking_time_min"].dropna().sort_values().to_numpy()
+
+    if len(walking) == 0:
+        raise RuntimeError(
+            "No valid walking-time values were produced."
+        )
+
+    share = (
+        (pd.Series(range(1, len(walking) + 1)) / len(walking) * 100)
+        .to_numpy()
     )
-    ax.axvline(10, linestyle="--", label="10 min")
-    ax.axvline(15, linestyle=":", label="15 min")
+
+    # Focus the visual on the policy-relevant / interpretable range while
+    # retaining the full distribution in the CSV summary.
+    x_upper = max(
+        40.0,
+        float(pd.Series(walking).quantile(0.95)),
+    )
+
+    share_10 = float((walking <= 10).mean() * 100)
+    share_15 = float((walking <= 15).mean() * 100)
+
+    fig, ax = plt.subplots(figsize=(7.5, 5.5))
+    ax.plot(walking, share, linewidth=2)
+
+    ax.axvline(10, linestyle="--")
+    ax.axvline(15, linestyle=":")
+
+    ax.scatter([10], [share_10], s=35, zorder=3)
+    ax.scatter([15], [share_15], s=35, zorder=3)
+
+    ax.annotate(
+        f"10 min: {share_10:.1f}%",
+        xy=(10, share_10),
+        xytext=(14, min(share_10 + 11, 92)),
+        arrowprops={"arrowstyle": "->"},
+    )
+    ax.annotate(
+        f"15 min: {share_15:.1f}%",
+        xy=(15, share_15),
+        xytext=(22, min(share_15 + 13, 94)),
+        arrowprops={"arrowstyle": "->"},
+    )
+
+    ax.set_xlim(0, x_upper)
+    ax.set_ylim(0, 100)
     ax.set_xlabel(
         "Estimated walking time to nearest sampled supermarket (min)"
     )
     ax.set_ylabel(
-        "Network-node count"
+        "Share of analysed network nodes (%)"
     )
     ax.set_title(
-        "Network-Based Walking Accessibility"
+        "Cumulative Pedestrian-Network Accessibility"
     )
-    ax.legend()
+    ax.grid(alpha=0.2)
     fig.tight_layout()
     fig.savefig(
         OUT / "figure03_walking_accessibility.png",
