@@ -38,14 +38,24 @@ jobs:
         run: |
           cat outputs/RESULTS_SUMMARY.md
 
-      - name: Remove large working files
+      - name: Upload complete GIS results as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: project03-network-accessibility-results
+          path: |
+            outputs/
+            docs/
+            data/processed/
+          retention-days: 30
+
+      - name: Remove large working files before repository commit
         run: |
           rm -f data/raw/augsburg_pedestrian_network.osm
           rm -f data/raw/augsburg_boundary.geojson
           rm -rf data/processed/*
           touch data/processed/.gitkeep
 
-      - name: Commit generated portfolio outputs
+      - name: Commit portfolio outputs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -57,12 +67,3 @@ jobs:
             git commit -m "Build Project03 network accessibility outputs"
             git push
           fi
-
-      - name: Upload complete outputs as workflow artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: project03-network-accessibility-outputs
-          path: |
-            outputs/
-            docs/
-          retention-days: 30

@@ -1,8 +1,10 @@
 __pycache__/
 *.pyc
 .DS_Store
+
 data/raw/*.pbf
-data/processed/*
-!data/processed/.gitkeep
 data/raw/augsburg_pedestrian_network.osm
 data/raw/augsburg_boundary.geojson
+
+data/processed/*
+!data/processed/.gitkeep

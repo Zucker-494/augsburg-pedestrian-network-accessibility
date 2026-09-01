@@ -2,67 +2,76 @@
 
 ## 1. Study area
 
-The analytical study area is the municipal administrative boundary of Augsburg,
-represented by OpenStreetMap relation 62407 (`admin_level=6`).
+The study area is the Augsburg municipal administrative boundary, represented by
+OpenStreetMap relation 62407 (`admin_level=6`).
 
-The project does not use a rectangular study extent for final analysis. Each candidate OSM line segment is clipped by exact geometric intersection with the Augsburg municipal polygon; boundary intersections become graph vertices.
+The analysis does not use a rectangular final extent. OSM line segments are
+intersected with the actual municipal polygon.
 
 ## 2. Network source
 
-The network is an Augsburg-specific Overpass export containing OSM ways with
-`highway` tags that are potentially usable by pedestrians.
+The pedestrian network is obtained from an Augsburg-specific Overpass query.
 
-The export is parsed directly from OSM XML using a streaming parser so that the
-workflow remains lightweight.
+Candidate OSM ways require a `highway` tag. Obvious motorway/trunk/construction
+classes, `foot=no`, and `access=private` or `access=no` are excluded. Ways tagged
+`area=yes` are excluded from the routable graph because polygon rings do not
+represent meaningful route centre lines.
 
-## 3. Routing graph
+## 3. Graph construction
 
-OSM ways are converted into graph edges between consecutive OSM nodes.
-
-Edge length is measured in UTM zone 32N (`EPSG:32632`).
-
-Pedestrian polygons (`area=yes`) are excluded from the graph because their
-boundary rings do not represent meaningful route centre lines.
+OSM way segments are projected to EPSG:32632 and converted to an undirected
+NetworkX graph. Edge weight is physical segment length in metres.
 
 ## 4. Connectivity
 
-The accessibility stage retains the largest connected pedestrian-network
-component before shortest-path analysis. The size of excluded components is
-reported as a data-quality diagnostic.
+The full graph is decomposed into connected components. The number and size of
+components are reported as data-quality diagnostics.
+
+Accessibility calculations use the largest connected component. This prevents
+small disconnected mapping fragments from dominating shortest-path results.
 
 ## 5. Supermarket snapping
 
-Each supermarket is projected to the same metric CRS and snapped to the nearest
-network node. Snap distances are reported; unusually large snap distances must
-be investigated rather than silently accepted.
+Supermarket coordinates are projected to EPSG:32632 and snapped to the nearest
+node in the analysed graph component.
+
+The snap distance is explicitly reported for every store.
+
+A virtual store source is connected to the snapped graph node using the snap
+distance as edge cost. Therefore network distance is measured from the actual
+store point rather than from the snapped node.
 
 ## 6. Network accessibility
 
-Multi-source Dijkstra calculates the shortest network distance from all network
-nodes to the nearest sampled supermarket.
+Multi-source Dijkstra calculates shortest network distance from each analysed
+graph node to the nearest sampled supermarket.
 
-Walking time is estimated using a fixed reference speed of 4.8 km/h. It is a
-comparative accessibility indicator, not an observed travel-time model.
+Walking time is estimated from network distance using a fixed reference speed of
+80 m/min (4.8 km/h).
 
 ## 7. Euclidean comparison
 
-For the same network nodes, Euclidean distance to the nearest sampled store is
-calculated.
+For the same graph nodes, Euclidean distance is measured to the actual
+supermarket coordinates.
 
-The main diagnostic is:
+The central diagnostic is:
 
-`detour ratio = network distance / Euclidean distance`
+```text
+detour ratio = network distance / Euclidean distance
+```
 
-Nodes very close to a supermarket are excluded from detour-ratio interpretation
-because the denominator approaches zero.
+Ratios are not interpreted for nodes within 50 m Euclidean distance of a store,
+because the denominator becomes unstable near zero.
 
-## 8. Additional network-quality information
+## 8. OSM network attributes
 
-The OSM export contains attributes such as `surface`, `smoothness`, `incline`,
-`lit`, `steps`, crossings, tunnels and bridges for parts of the network.
+Attributes such as `surface`, `smoothness`, `incline`, `lit`, `step_count`,
+crossings, tunnels and bridges are retained when available.
 
-Project03 reports the completeness of these fields. They are not assigned
-arbitrary penalty weights in the baseline routing model.
+Project03 reports their completeness but does not assign undocumented penalty
+weights. The baseline routing cost remains physical distance.
 
-This leaves a transparent extension path for a later generalized-cost routing
-model without pretending that undocumented weights are empirically validated.
+## 9. Interpretation
+
+The model describes pedestrian-network accessibility under the mapped OSM
+network. It is not an observed pedestrian travel-time or behavioural model.

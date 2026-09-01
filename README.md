@@ -2,198 +2,259 @@
 
 ## Project objective
 
-Project03 extends the Euclidean accessibility work from Project02 into a **real street-network model**.
+Project03 extends the Euclidean accessibility analysis from Project02 into a
+pedestrian street-network model.
 
 The core question is:
 
-> How different is supermarket accessibility when actual pedestrian-network structure is considered instead of straight-line distance?
+> How different is supermarket accessibility when actual pedestrian-network
+> structure is considered instead of straight-line distance?
 
-The project is designed as an intermediate GIS/network-analysis portfolio case. It demonstrates how the choice of spatial representation changes accessibility results.
+The project keeps the supermarket sample consistent with Project02. The main
+methodological change is therefore the representation of distance:
+
+- **Project02:** Euclidean distance
+- **Project03:** pedestrian-network distance
+
+This makes the comparison interpretable as a network effect rather than a
+change in the retail sample.
 
 ---
 
-## Planned analytical workflow
+## Analytical workflow
 
 ```text
-Augsburg-specific Overpass OSM XML
-            │
-            ▼
-Extract Augsburg municipal boundary
-            │
-            ▼
-Clip highways to the municipal polygon
-            │
-            ▼
-Filter pedestrian-usable links
-            │
-            ▼
-Segment lines into a topological graph
-            │
-            ▼
-Snap supermarket POIs to graph nodes
-            │
-            ▼
+Augsburg municipal boundary
+(OSM relation 62407, admin_level=6)
+              │
+              ▼
+Augsburg-specific pedestrian OSM XML
+              │
+              ▼
+Exact clip to the municipal polygon
+              │
+              ▼
+Filter pedestrian-usable highway ways
+              │
+              ▼
+Build topological graph in EPSG:32632
+              │
+              ▼
+Largest-connected-component diagnostics
+              │
+              ▼
+Snap supermarket points to the graph
+              │
+              ▼
+Include store-to-network connector distance
+              │
+              ▼
 Multi-source Dijkstra shortest paths
-            │
-            ├── Euclidean nearest-store distance
-            ├── Network nearest-store distance
-            ├── Walking-time accessibility
-            └── Detour ratio
-                         │
-                         ▼
-              Spatial diagnostics + maps
+              │
+              ├── Euclidean nearest-store distance
+              ├── Network nearest-store distance
+              ├── Walking-time accessibility
+              └── Detour ratio
+                           │
+                           ▼
+                Diagnostics + figures + map
 ```
 
-The main comparison is:
-
-\[
-Detour\ Ratio = rac{Network\ Distance}{Euclidean\ Distance}
-\]
-
-A detour ratio close to 1 means the pedestrian network provides a relatively direct route. Higher values indicate that barriers, street configuration or limited crossings create additional travel distance.
-
----
-
-## Expected outputs
-
-After the OSM extract is added and the pipeline is run, the project will generate:
-
-- `network_nodes.gpkg`
-- `network_edges.gpkg`
-- `node_accessibility.gpkg`
-- `store_snapping.csv`
-- `summary_metrics.csv`
-- `figure01_network_vs_euclidean.png`
-- `figure02_detour_ratio_distribution.png`
-- `figure03_walking_accessibility.png`
-- `interactive_network_accessibility.html`
-
-The interactive output uses an OpenStreetMap basemap.
-
----
-
-## Data required
-
-Use the two Augsburg-specific Overpass exports and save them as:
+The main diagnostic is:
 
 ```text
-data/raw/schwaben-latest.osm.pbf
+Detour ratio = pedestrian-network distance / Euclidean distance
 ```
 
-The file covers Augsburg and is roughly 121 MB.
-
-No network result is fabricated if the file is absent.
-
-See `DATA_DOWNLOAD.md`.
-
----
-
-## Study data
-
-The supermarket sample is inherited from Project02 so that the methodological comparison remains controlled.
-
-This means the main change between Project02 and Project03 is the **distance representation**:
-
-- Project02: Euclidean distance
-- Project03: pedestrian-network distance
-
-This is useful because differences can be interpreted as network effects rather than changes in the retail sample.
-
----
-
-## Reproducibility
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Run:
-
-```bash
-python src/run_project03.py
-```
-
-The pipeline will stop with a clear message if the OSM PBF is missing.
-
----
-
-## Portfolio skills demonstrated
-
-Once completed, Project03 demonstrates:
-
-- direct OpenStreetMap PBF processing;
-- administrative-boundary extraction and polygon clipping;
-- pedestrian-network extraction;
-- graph construction with NetworkX;
-- spatial snapping using nearest-neighbour search;
-- multi-source shortest-path analysis;
-- Euclidean versus network accessibility;
-- detour-ratio diagnostics;
-- walking-time modelling;
-- GeoParquet-based intermediate data;
-- interactive web cartography.
-
----
-
-## Methodological boundary
-
-This is a network accessibility model, not a complete pedestrian-behaviour model.
-
-The graph represents OSM-mapped walkable street structure. It does not model individual mobility constraints, signal waiting time, crossing difficulty, slope, crowding or temporary barriers.
-
-Walking time is estimated from network distance using a fixed reference walking speed and is therefore a comparative indicator.
-
+A value near 1 indicates a relatively direct pedestrian-network route. Higher
+values indicate additional travel distance created by street configuration,
+barriers or limited connectivity.
 
 ---
 
 ## Study-area definition
 
-The analytical study area is the **Augsburg municipal administrative boundary**, not a rectangular analysis extent.
+The analytical study area is the **Augsburg municipal administrative boundary**,
+not a rectangular extent.
 
-The pipeline extracts the Augsburg administrative relation from the same Geofabrik OSM PBF, saves it as `augsburg_municipal_boundary.geojson`, and clips the pedestrian network to that polygon.
+The boundary is OpenStreetMap relation **62407**:
 
-A rectangular bounding box may still be used internally to reduce PBF read time. It is only an I/O optimisation and does not define the analytical study area.
+- `name=Augsburg`
+- `boundary=administrative`
+- `admin_level=6`
 
+Each candidate OSM road segment is intersected with this polygon. Segments
+crossing the municipal boundary are clipped at the real polygon boundary.
 
 ---
 
-## Current data architecture
+## Input data
 
-The final Project03 pipeline uses the smaller Augsburg-specific exports rather
-than requiring users to download the full Schwaben extract:
+The reproducible cloud workflow downloads two public OSM inputs automatically:
 
 ```text
 data/raw/augsburg_boundary.geojson
 data/raw/augsburg_pedestrian_network.osm
 ```
 
-The boundary is OSM relation **62407**, `admin_level=6`.
+The pedestrian-network extract is obtained from Overpass for the Augsburg
+administrative area. Obvious non-pedestrian road classes, `foot=no` and
+`access=private` are excluded. A second validation step is performed in Python.
 
-The network export contains detailed pedestrian attributes in parts of Augsburg,
-including `surface`, `smoothness`, `incline`, `steps`, lighting and crossing
-information. Project03 measures the completeness of these attributes but keeps
-the baseline routing cost equal to physical network distance. This avoids
-introducing undocumented subjective penalty weights.
+The supermarket comparison uses:
 
+```text
+data/supermarkets_sample.csv
+```
+
+This is the same eight-store sample used for the controlled comparison with
+Project02.
+
+See [`DATA_DOWNLOAD.md`](DATA_DOWNLOAD.md).
 
 ---
 
-## One-click cloud reproduction
+## Network model
 
-Project03 includes a **GitHub Actions** workflow, so the network model does not
-need to be computed on a powerful local computer.
+OSM ways are converted into an undirected pedestrian graph. Segment lengths are
+measured in **ETRS89 / UTM zone 32N (EPSG:32632)**.
 
-After uploading the repository:
+The project reports connected-component structure before accessibility analysis.
+Shortest-path analysis uses the largest connected component to reduce
+disconnected fringe artifacts.
 
-**Actions → Build Project03 GIS Analysis → Run workflow**
+Each supermarket is snapped to its nearest node in the analysed component.
+Importantly, the distance from the actual supermarket point to the snapped node
+is included in network cost through a virtual store connector.
 
-The cloud runner downloads the public Augsburg OSM inputs, builds the graph,
-runs Dijkstra accessibility analysis, generates all maps/results, and commits
-the portfolio outputs back to the repository.
+Walking time uses a fixed reference speed:
+
+```text
+80 m/min = 4.8 km/h
+```
+
+It is a comparative indicator rather than an observed travel-time model.
+
+---
+
+## OSM pedestrian attributes
+
+The OSM network may contain attributes such as:
+
+- `surface`
+- `smoothness`
+- `incline`
+- `lit`
+- `step_count`
+- crossings, bridges and tunnels
+
+Project03 reports attribute completeness but does **not** assign arbitrary
+penalty weights to these fields. The baseline routing cost is physical network
+distance.
+
+This keeps the current model transparent while leaving a clear extension path
+toward generalized-cost or accessibility-sensitive routing.
+
+---
+
+## Generated outputs
+
+### Portfolio outputs
+
+The cloud workflow generates and keeps:
+
+```text
+outputs/store_snapping.csv
+outputs/network_component_summary.csv
+outputs/summary_metrics.csv
+outputs/RESULTS_SUMMARY.md
+outputs/figure01_network_vs_euclidean.png
+outputs/figure02_detour_ratio_distribution.png
+outputs/figure03_walking_accessibility.png
+outputs/interactive_network_accessibility.html
+docs/index.html
+```
+
+`docs/index.html` is the GitHub Pages version of the interactive map.
+
+### GIS working outputs
+
+During execution, the pipeline also creates GeoPackage layers:
+
+```text
+data/processed/augsburg_municipal_boundary.gpkg
+data/processed/network_nodes.gpkg
+data/processed/network_edges.gpkg
+data/processed/network_edges_lcc.gpkg
+data/processed/node_accessibility.gpkg
+```
+
+These are available in the GitHub Actions artifact but are not committed to the
+repository because they can be substantially larger than the portfolio figures
+and tables.
+
+---
+
+## Reproducibility
+
+### Cloud execution — recommended
+
+No local GIS processing is required.
+
+After the repository is on GitHub:
+
+```text
+Actions
+→ Build Project03 GIS Analysis
+→ Run workflow
+```
+
+GitHub Actions downloads the public OSM inputs and runs the complete pipeline.
 
 See [`CLOUD_BUILD.md`](CLOUD_BUILD.md).
 
-This automation is part of the portfolio value of Project03: the project
-demonstrates both network GIS analysis and a reproducible computational workflow.
+### Local execution
+
+If a local run is desired:
+
+```bash
+pip install -r requirements.txt
+python src/00_download_inputs.py
+python src/run_project03.py
+```
+
+---
+
+## Portfolio skills demonstrated
+
+Project03 demonstrates:
+
+- OpenStreetMap / Overpass data acquisition
+- administrative-boundary polygon clipping
+- pedestrian-network extraction
+- graph construction with NetworkX
+- connectivity diagnostics
+- spatial nearest-neighbour snapping
+- multi-source shortest-path analysis
+- Euclidean versus network accessibility
+- detour-ratio diagnostics
+- walking-time modelling
+- GeoPackage-based GIS outputs
+- interactive web cartography
+- GitHub Actions reproducible automation
+
+---
+
+## Methodological boundary
+
+This is a **network accessibility model**, not a complete pedestrian-behaviour
+model.
+
+The graph represents OSM-mapped pedestrian street structure. It does not
+directly model individual mobility constraints, signal waiting time, crossing
+difficulty, crowding or temporary barriers. Network attribute completeness also
+varies across OSM features.
+
+Accordingly, results should be interpreted as spatial-network accessibility
+diagnostics for the sampled supermarkets rather than observed pedestrian
+behaviour.

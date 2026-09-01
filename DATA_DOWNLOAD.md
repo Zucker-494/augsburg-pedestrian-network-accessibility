@@ -1,35 +1,49 @@
-# Project03 input data
+# Input Data
 
-Project03 no longer requires the full Schwaben PBF during normal reproduction.
+Project03 is designed so that no large regional PBF needs to be stored in the
+repository.
 
-Two Augsburg-specific Overpass exports are used:
+## 1. Augsburg municipal boundary
+
+The workflow downloads OpenStreetMap relation **62407** as:
 
 ```text
 data/raw/augsburg_boundary.geojson
+```
+
+The feature is validated as:
+
+```text
+name=Augsburg
+boundary=administrative
+admin_level=6
+```
+
+## 2. Augsburg pedestrian network
+
+The workflow queries Overpass and stores the result as:
+
+```text
 data/raw/augsburg_pedestrian_network.osm
 ```
 
-## Municipal boundary
+The query selects OSM `highway` ways in the Augsburg administrative area while
+excluding obvious non-pedestrian classes and explicit access restrictions.
 
-The study area is OpenStreetMap relation `62407`:
+The Python pipeline then performs another validation/filtering stage and applies
+the exact Augsburg municipal polygon clip.
 
-- name: Augsburg
-- boundary: administrative
-- admin_level: 6
-- official municipality code: 09761000
+## 3. Supermarket sample
 
-The polygon is used as the final analytical boundary.
+The controlled comparison uses:
 
-## Pedestrian network
+```text
+data/supermarkets_sample.csv
+```
 
-The OSM XML was generated from an Overpass area query based on relation 62407.
+The sample is intentionally kept consistent with Project02 so that the main
+difference between the projects is the distance representation.
 
-Included ways have a `highway` tag, while obvious motorway/trunk/construction classes,
-`foot=no`, and `access=private` were excluded at query time.
-
-The Python pipeline applies a second validation/filtering stage and excludes
-`area=yes` pedestrian polygons from the routable graph.
-
-## Attribution
+## Data licence
 
 OpenStreetMap data © OpenStreetMap contributors, ODbL.

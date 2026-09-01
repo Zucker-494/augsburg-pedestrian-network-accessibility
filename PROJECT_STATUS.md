@@ -1,37 +1,38 @@
 # Project03 Status
 
-## Completed
+## Implemented
 
-- Research question and analytical scope frozen
-- Augsburg municipal boundary selected: OSM relation 62407, admin_level 6
-- Rectangle-based final clipping removed
-- Exact segment–polygon intersection implemented at the municipal boundary
-- Augsburg-specific Overpass network selected as the primary data input
-- Low-memory OSM XML streaming parser implemented
-- Pedestrian routing filters implemented
-- `area=yes` highway polygons excluded from graph topology
-- UTM 32N metric graph construction implemented
-- OSM network attributes preserved on graph edges
-- Network-attribute completeness diagnostics implemented
-- Store-to-network snapping implemented
-- Largest-connected-component logic implemented
-- Multi-source Dijkstra accessibility implemented
-- Euclidean vs network-distance comparison implemented
-- Detour ratio implemented
-- Walking-time accessibility implemented
-- Static output figures implemented
-- Interactive OSM-based result map implemented
+- Augsburg municipal boundary fixed to OSM relation 62407 (`admin_level=6`)
+- rectangle-based final clipping removed
+- exact segment–polygon intersection implemented
+- Augsburg-specific Overpass network acquisition implemented
+- low-memory OSM XML parsing implemented
+- pedestrian routing filters implemented
+- `area=yes` highway polygons excluded from graph routing
+- metric graph construction in EPSG:32632 implemented
+- OSM pedestrian attributes retained
+- network-attribute completeness diagnostics implemented
+- connected-component diagnostics implemented
+- largest-component routing implemented
+- supermarket-to-network snapping implemented
+- supermarket snap distance included in network cost
+- multi-source Dijkstra accessibility implemented
+- Euclidean/network comparison implemented
+- detour ratio implemented
+- walking-time accessibility implemented
+- static figures implemented
+- interactive OSM map implemented
+- GeoPackage GIS working outputs implemented
+- GitHub Actions cloud workflow implemented
 
-## Data validation already supported by uploaded sources
+## Pending before final freeze
 
-The boundary upload identifies Augsburg as relation 62407, administrative,
-admin_level 6.
+Run the workflow against the live Augsburg network and inspect:
 
-The pedestrian-network upload contains OSM node/way topology and pedestrian
-attributes including footways, pedestrian streets, steps, surfaces, inclines,
-crossings and related metadata.
+1. total node/edge counts;
+2. largest-component share;
+3. supermarket snap distances;
+4. detour-ratio distribution and any ratios below 1;
+5. visual quality of the static figures and interactive map.
 
-## Remaining execution step
-
-Run the complete pipeline against the two raw Overpass exports, inspect network
-connectivity and snapping diagnostics, then freeze the final GitHub release.
+The project should be frozen only after these checks pass.

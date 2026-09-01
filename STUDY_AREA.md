@@ -1,27 +1,31 @@
-# Study Area Boundary
+# Study Area
 
-Project03 uses the **municipal administrative boundary of Augsburg** as the analytical study area.
+Project03 uses the **municipal administrative boundary of Augsburg** as its
+analytical study area.
 
-## Operational source
+## Operational boundary
 
-The pipeline extracts the administrative polygon named `Augsburg` directly from the Geofabrik Schwaben OpenStreetMap PBF. It prefers:
+The boundary is OpenStreetMap relation **62407**:
 
-- `boundary=administrative`
-- `admin_level=6`
+```text
+name=Augsburg
+boundary=administrative
+admin_level=6
+```
 
-The selected geometry is saved to:
+The cloud workflow downloads this relation as GeoJSON.
 
-- `data/processed/augsburg_municipal_boundary.geojson`
-- `data/processed/augsburg_municipal_boundary.parquet`
+## Spatial clipping rule
 
-## Clipping rule
+The analytical network is not clipped by a rectangle.
 
-The road network is clipped with the municipal polygon.
+Each OSM road segment is geometrically intersected with the Augsburg municipal
+polygon. If a segment crosses the administrative boundary, the intersection
+point becomes the end point of the retained graph segment.
 
-A polygon bounding box is used only to reduce the amount of PBF data read into memory. No analytical result is clipped or summarized by that rectangle.
+A rectangular extent is therefore not used to define any final network result.
 
-## Validation
+## Coordinate reference system
 
-For visual/administrative validation, the Bavarian Surveying Administration publishes ALKIS administrative boundaries. The municipal boundaries are cadastral-derived and available as an official open-data WMS.
-
-The operational vector clip remains OSM-based so the complete workflow can be reproduced from the same Geofabrik source file.
+Input OSM geometries use WGS84 (`EPSG:4326`). Distance and graph-edge length are
+calculated after projection to ETRS89 / UTM zone 32N (`EPSG:32632`).
