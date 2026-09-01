@@ -1,0 +1,14 @@
+metric,value
+graph_components,808.0
+largest_component_nodes,142606.0
+largest_component_share_pct,97.48171440289836
+graph_nodes_analysed,142606.0
+median_euclidean_distance_m,1606.9671913223342
+median_network_distance_m,2153.846483740819
+p90_network_distance_m,5156.269092269447
+median_detour_ratio,1.267124248446169
+p90_detour_ratio,1.6340991487020946
+share_nodes_within_10min_pct,15.723041106264812
+share_nodes_within_15min_pct,28.786306326522027
+max_store_snap_distance_m,47.81879820267902
+detour_ratio_below_0_995_count,0.0
